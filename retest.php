@@ -9,6 +9,104 @@
 	retest_call_test_functions();
 
 
+	function should_return($expected_return_value, $when_passed=NULL, $msg=NULL)
+	{
+		$debug_backtrace = debug_backtrace();
+		$function = function_being_tested($debug_backtrace[1]['function']);
+		if (function_exists($function))	$returned_value = call_user_func_array($function, $when_passed);
+		else return trigger_error("Function $function does not exist");
+
+		$satisfied = ($returned_value === $expected_return_value);
+		retest_increment('assertions');
+		$msg = retest_assert_description($satisfied, $function, $expected_return_value, $returned_value, $when_passed, $msg);
+		$location = extract_assertion_location_from_($debug_backtrace);
+		retest_assertions(array('function'=>$function, 'location'=>$location, 'message'=>$msg));
+
+		if (!$satisfied)
+		{
+			retest_increment('failures');
+			retest_failures(array('function'=>$function, 'location'=>$location, 'message'=>$msg));
+		}
+
+		return $satisfied;
+	}
+
+
+	function when_passed()
+	{
+		return func_get_args();
+	}
+
+		function function_being_tested($test_function)
+		{
+			return preg_replace('/^test_/', '', $test_function);
+		}
+
+		function retest_assert_description($satisfied, $function, $expected_return_value, $returned_value, $passed_arguments, $msg)
+		{
+			if ($satisfied)
+			{
+				$function_call = "<strong>$function</strong>".'('.retest_array_to_argument_list($passed_arguments).')';
+				//TODO: reason for %1\$s instead of %s: the $f in $function_call kicks in argument swaping in sprintf :(
+				$msg = is_null($msg) ? sprintf("$function_call returns <em>%1\$s</em>", htmlspecialchars(var_export($returned_value, true))) : $msg;
+			}
+			else
+			{
+				$function_call = $function.'('.retest_array_to_argument_list($passed_arguments).')';
+				//TODO: reason for %1\$s instead of %s: the $f in $function_call kicks in argument swaping in sprintf :(
+				$msg = is_null($msg) ? sprintf("<strong>$function_call</strong> should have returned <strong>%1\$s</strong> but was <strong>%2\$s</strong>", htmlspecialchars(var_export($expected_return_value, true)), htmlspecialchars(var_export($returned_value, true))) : $msg;
+			}
+
+			return $msg;
+		}
+
+			function retest_array_to_argument_list($arguments)
+			{
+				$argument_list = '';
+
+				if (is_array($arguments))
+				{
+					$arguments = array_map('retest_variable_to_string', $arguments);
+					$argument_list = implode(', ', $arguments);
+				}
+
+				return $argument_list;
+			}
+				function retest_variable_to_string($argument)
+				{
+					return htmlspecialchars(var_export($argument, true));
+				}
+
+		function retest_assertions($assertion=NULL)
+		{
+			static $assertions=array();
+			if (is_null($assertion)) return $assertions;
+
+			$assertions[$assertion['function']][] = array('location' => $assertion['location'],
+			                                              'message' => $assertion['message']);
+			return $assertions;
+
+		}
+
+		function retest_failures($assertion=NULL)
+		{
+			static $assertions;
+
+			$assertions = isset($assertions) ? $assertions : array();
+			if (is_null($assertion)) return $assertions;
+
+			$assertions[$assertion['function']][] = array('location' => $assertion['location'],
+			                                              'message' => $assertion['message']);
+			return $assertions;
+		}
+
+		function extract_assertion_location_from_($debug_backtrace)
+		{
+			return array('file'=>$debug_backtrace[0]['file'], 'line'=>$debug_backtrace[0]['line']);
+		}
+
+
+
 		function retest_include_files()
 		{
 			foreach (retest_test_files() as $test_file)
@@ -168,104 +266,6 @@
 				{
 					return $counter += count($value);
 				}
-
-
-	function should_return($expected_return_value, $when_passed=NULL, $msg=NULL)
-	{
-		$debug_backtrace = debug_backtrace();
-		$function = extract_function_name_from_($debug_backtrace);
-		if (function_exists($function))	$returned_value = call_user_func_array($function, $when_passed);
-		else return trigger_error("Function $function does not exist");
-
-		$satisfied = ($returned_value === $expected_return_value);
-		retest_increment('assertions');
-		$msg = retest_assert_description($satisfied, $function, $expected_return_value, $returned_value, $when_passed, $msg);
-		$location = extract_assertion_location_from_($debug_backtrace);
-		retest_assertions(array('function'=>$function, 'location'=>$location, 'message'=>$msg));
-
-		if (!$satisfied)
-		{
-			retest_increment('failures');
-			retest_failures(array('function'=>$function, 'location'=>$location, 'message'=>$msg));
-		}
-
-		return $satisfied;
-	}
-		function extract_function_name_from_($debug_backtrace)
-		{
-			$test_function = $debug_backtrace[1]['function'];
-			$function = preg_replace('/^test_/', '', $test_function);
-			return $function;
-		}
-
-		function retest_assert_description($satisfied, $function, $expected_return_value, $returned_value, $passed_arguments, $msg)
-		{
-			if ($satisfied)
-			{
-				$function_call = "<strong>$function</strong>".'('.retest_array_to_argument_list($passed_arguments).')';
-				//TODO: reason for %1\$s instead of %s: the $f in $function_call kicks in argument swaping in sprintf :(
-				$msg = is_null($msg) ? sprintf("$function_call returns <em>%1\$s</em>", htmlspecialchars(var_export($returned_value, true))) : $msg;
-			}
-			else
-			{
-				$function_call = $function.'('.retest_array_to_argument_list($passed_arguments).')';
-				//TODO: reason for %1\$s instead of %s: the $f in $function_call kicks in argument swaping in sprintf :(
-				$msg = is_null($msg) ? sprintf("<strong>$function_call</strong> should have returned <strong>%1\$s</strong> but was <strong>%2\$s</strong>", htmlspecialchars(var_export($expected_return_value, true)), htmlspecialchars(var_export($returned_value, true))) : $msg;
-			}
-
-			return $msg;
-		}
-
-			function retest_array_to_argument_list($arguments)
-			{
-				$argument_list = '';
-
-				if (is_array($arguments))
-				{
-					$arguments = array_map('retest_variable_to_string', $arguments);
-					$argument_list = implode(', ', $arguments);
-				}
-
-				return $argument_list;
-			}
-				function retest_variable_to_string($argument)
-				{
-					return htmlspecialchars(var_export($argument, true));
-				}
-
-		function retest_assertions($assertion=NULL)
-		{
-			static $assertions=array();
-			if (is_null($assertion)) return $assertions;
-
-			$assertions[$assertion['function']][] = array('location' => $assertion['location'],
-			                                              'message' => $assertion['message']);
-			return $assertions;
-
-		}
-
-		function retest_failures($assertion=NULL)
-		{
-			static $assertions;
-
-			$assertions = isset($assertions) ? $assertions : array();
-			if (is_null($assertion)) return $assertions;
-
-			$assertions[$assertion['function']][] = array('location' => $assertion['location'],
-			                                              'message' => $assertion['message']);
-			return $assertions;
-		}
-
-		function extract_assertion_location_from_($debug_backtrace)
-		{
-			return array('file'=>$debug_backtrace[0]['file'], 'line'=>$debug_backtrace[0]['line']);
-		}
-
-	function when_passed()
-	{
-		return func_get_args();
-	}
-
 
 ?>
 
