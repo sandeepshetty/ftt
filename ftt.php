@@ -1,7 +1,7 @@
 <?php
 
-	retest_include_files();
-	retest_call_test_functions();
+	ftt_include_files();
+	ftt_call_test_functions();
 
 
 	function should_return($expected_return_value, $params=NULL, $msg=NULL)
@@ -13,27 +13,27 @@
 		if (!function_exists($function)) return trigger_error("Function $function does not exist");
 
 		$returned_value = call_user_func_array($function, $params);
-		retest_incr('assertions');
+		ftt_incr('assertions');
 
 		$is_expectation_met = ($returned_value === $expected_return_value);
-		retest_assertions(retest_assertion($function, $expected_return_value, $returned_value, $params, $msg, $debug_backtrace));
+		ftt_assertions(ftt_assertion($function, $expected_return_value, $returned_value, $params, $msg, $debug_backtrace));
 
 		if (!$is_expectation_met)
 		{
-			retest_incr('failures');
-			retest_failures(retest_assertion($function, $expected_return_value, $returned_value, $params, $msg, $debug_backtrace));
+			ftt_incr('failures');
+			ftt_failures(ftt_assertion($function, $expected_return_value, $returned_value, $params, $msg, $debug_backtrace));
 		}
 
 		return $is_expectation_met;
 	}
 
-		function retest_assertion($function, $expected_return_value, $returned_value, $params, $msg, $debug_backtrace)
+		function ftt_assertion($function, $expected_return_value, $returned_value, $params, $msg, $debug_backtrace)
 		{
 			return array
 			(
 				'function' => $function,
 				'location' => assertion_location($debug_backtrace),
-				'message' => retest_assert_description($function, $expected_return_value, $returned_value, $params, $msg)
+				'message' => ftt_assert_description($function, $expected_return_value, $returned_value, $params, $msg)
 			);
 		}
 
@@ -50,18 +50,18 @@
 			return preg_replace('/^test_/', '', $test_function);
 		}
 
-		function retest_assert_description($function, $expected_return_value, $returned_value, $passed_arguments, $msg)
+		function ftt_assert_description($function, $expected_return_value, $returned_value, $passed_arguments, $msg)
 		{
 			$is_expectation_met = ($returned_value === $expected_return_value);
 			if ($is_expectation_met)
 			{
-				$function_call = "<strong>$function</strong>".'('.retest_array_to_argument_list($passed_arguments).')';
+				$function_call = "<strong>$function</strong>".'('.ftt_array_to_argument_list($passed_arguments).')';
 				//TODO: reason for %1\$s instead of %s: the $f in $function_call kicks in argument swaping in sprintf :(
 				$msg = is_null($msg) ? sprintf("$function_call returns <em>%1\$s</em>", htmlspecialchars(var_export($returned_value, true))) : $msg;
 			}
 			else
 			{
-				$function_call = $function.'('.retest_array_to_argument_list($passed_arguments).')';
+				$function_call = $function.'('.ftt_array_to_argument_list($passed_arguments).')';
 				//TODO: reason for %1\$s instead of %s: the $f in $function_call kicks in argument swaping in sprintf :(
 				$msg = is_null($msg) ? sprintf("<strong>$function_call</strong> should have returned <strong>%1\$s</strong> but was <strong>%2\$s</strong>", htmlspecialchars(var_export($expected_return_value, true)), htmlspecialchars(var_export($returned_value, true))) : $msg;
 			}
@@ -69,24 +69,24 @@
 			return $msg;
 		}
 
-			function retest_array_to_argument_list($arguments)
+			function ftt_array_to_argument_list($arguments)
 			{
 				$argument_list = '';
 
 				if (is_array($arguments))
 				{
-					$arguments = array_map('retest_variable_to_string', $arguments);
+					$arguments = array_map('ftt_variable_to_string', $arguments);
 					$argument_list = implode(', ', $arguments);
 				}
 
 				return $argument_list;
 			}
-				function retest_variable_to_string($argument)
+				function ftt_variable_to_string($argument)
 				{
 					return htmlspecialchars(var_export($argument, true));
 				}
 
-		function retest_assertions($assertion=NULL)
+		function ftt_assertions($assertion=NULL)
 		{
 			static $assertions=array();
 			if (is_null($assertion)) return $assertions;
@@ -97,7 +97,7 @@
 
 		}
 
-		function retest_failures($assertion=NULL)
+		function ftt_failures($assertion=NULL)
 		{
 			static $assertions;
 
@@ -116,38 +116,38 @@
 
 
 
-		function retest_include_files()
+		function ftt_include_files()
 		{
-			foreach (retest_test_files() as $test_file)
+			foreach (ftt_test_files() as $test_file)
 			{
-				if ($source_file = retest_source_file($test_file))
+				if ($source_file = ftt_source_file($test_file))
 				{
 					include_once $source_file;
-					retest_incr('source_files');
-					retest_source_files($source_file);
+					ftt_incr('source_files');
+					ftt_source_files($source_file);
 				}
 
 				include_once $test_file;
-				retest_incr('test_files');
+				ftt_incr('test_files');
 			}
 		}
 
-			function retest_test_files()
+			function ftt_test_files()
 			{
-				return retest_globr(dirname(__FILE__), '*.test.php');
+				return ftt_globr(dirname(__FILE__), '*.test.php');
 			}
-				function retest_globr($dir, $pattern)
+				function ftt_globr($dir, $pattern)
 				{
 					$files = glob($dir.DIRECTORY_SEPARATOR.$pattern);
 					foreach (glob($dir.DIRECTORY_SEPARATOR.'*', GLOB_ONLYDIR) as $dirname)
 					{
-						$files = array_merge($files, retest_globr($dirname, $pattern));
+						$files = array_merge($files, ftt_globr($dirname, $pattern));
 					}
 
 					return $files;
 				}
 
-			function retest_source_file($test_file)
+			function ftt_source_file($test_file)
 			{
 				$source_file = file_being_tested($test_file);
 
@@ -170,12 +170,12 @@
 					return preg_replace('/\.test\.php$/', '.php', $test_file);
 				}
 
-			function retest_incr($counter_name)
+			function ftt_incr($counter_name)
 			{
-				return retest_counter($counter_name, true);
+				return ftt_counter($counter_name, true);
 			}
 
-				function retest_counter($counter_name, $increment=false)
+				function ftt_counter($counter_name, $increment=false)
 				{
 					static $counters;
 					if (!isset($counters[$counter_name])) $counters[$counter_name] = 0;
@@ -183,7 +183,7 @@
 					return $counters[$counter_name];
 				}
 
-		function retest_source_files($source_file=NULL)
+		function ftt_source_files($source_file=NULL)
 		{
 			static $source_files=array();
 			if (is_null($source_file)) return $source_files;
@@ -191,19 +191,19 @@
 			return $source_files;
 		}
 
-		function retest_call_test_functions()
+		function ftt_call_test_functions()
 		{
-			retest_source_coverage('start');
+			ftt_source_coverage('start');
 
-			foreach (retest_test_functions() as $test_function)
+			foreach (ftt_test_functions() as $test_function)
 			{
-				retest_incr('tests');
+				ftt_incr('tests');
 				$test_function();
 			}
 
-			retest_source_coverage('stop');
+			ftt_source_coverage('stop');
 		}
-			function retest_test_functions()
+			function ftt_test_functions()
 			{
 				$all_defined_functions = get_defined_functions();
 				$user_defined_functions = $all_defined_functions['user'];
@@ -214,7 +214,7 @@
 					return preg_match('/^test_.*/', $function);
 				}
 
-			function retest_source_coverage($op='')
+			function ftt_source_coverage($op='')
 			{
 				static $source_coverage=array();
 
@@ -226,13 +226,13 @@
 				if ('stop' == $op and function_exists('xdebug_get_code_coverage'))
 				{
 					$source_coverage = xdebug_get_code_coverage();
-					$source_coverage = retest_filter_code_coverage($source_coverage);
+					$source_coverage = ftt_filter_code_coverage($source_coverage);
 				}
 
 				return $source_coverage;
 			}
 
-				function retest_filter_code_coverage($source_coverage)
+				function ftt_filter_code_coverage($source_coverage)
 				{
 					//TODO: rename files created in tests to testfoo... so that they can be filtered out
 					foreach ($source_coverage as $file=>$file_coverage)
@@ -241,7 +241,7 @@
 						    (substr($file, -10) == 'retest.php') or
 						    (substr($file, -15) == 'retest.test.php'))
 							unset($source_coverage[$file]);
-						else $source_coverage[$file] = array_filter($file_coverage, 'retest_is_negative_value');
+						else $source_coverage[$file] = array_filter($file_coverage, 'ftt_is_negative_value');
 					}
 
 					foreach ($source_coverage as $file=>$file_coverage)
@@ -262,16 +262,16 @@
 
 					return $source_coverage;
 				}
-					function retest_is_negative_value($val)
+					function ftt_is_negative_value($val)
 					{
 						return $val < 0;
 					}
 
-			function retest_count_of_untested_lines($source_coverage)
+			function ftt_count_of_untested_lines($source_coverage)
 			{
-				return array_reduce($source_coverage, 'retest_accumulator', 0);
+				return array_reduce($source_coverage, 'ftt_accumulator', 0);
 			}
-				function retest_accumulator($counter, $value)
+				function ftt_accumulator($counter, $value)
 				{
 					return $counter += count($value);
 				}
@@ -281,7 +281,7 @@
 
 <?php //HTML helper
 
-	function retest_meta_refresh($seconds=NULL)
+	function ftt_meta_refresh($seconds=NULL)
 	{
 		if (!is_null($seconds))
 		{
@@ -289,29 +289,29 @@
 		}
 	}
 
-	function retest_no_tests()
+	function ftt_no_tests()
 	{
-		return (count(retest_test_functions()) == 0);
+		return (count(ftt_test_functions()) == 0);
 	}
 
 
-	function retest_status_red()
+	function ftt_status_red()
 	{
-		return (retest_counter('failures') > 0);
+		return (ftt_counter('failures') > 0);
 	}
 
 
-	function retest_red_or_green_bar()
+	function ftt_red_or_green_bar()
 	{
-		return (retest_status_red()) ? "red-bar" : "green-bar";
+		return (ftt_status_red()) ? "red-bar" : "green-bar";
 	}
 
-	function retest_pluralize($str, $no)
+	function ftt_pluralize($str, $no)
 	{
 		return (1 !== $no) ? $str.'s' : $str;
 	}
 
-	function retest_test_filter($test)
+	function ftt_test_filter($test)
 	{
 		$test = preg_replace('/([A-Z])/', ' \1', $test);
 		$test = preg_replace('/^test_/', '', $test);
@@ -327,7 +327,7 @@
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
 	<!-- meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /-->
-	<?php if (isset($_GET['refresh_in'])) echo retest_meta_refresh(htmlspecialchars($_GET['refresh_in'])); ?>
+	<?php if (isset($_GET['refresh_in'])) echo ftt_meta_refresh(htmlspecialchars($_GET['refresh_in'])); ?>
 	<title>Retest - Red/Green/Refactor</title>
 	<style type="text/css">
 
@@ -452,10 +452,10 @@
 
 <div id='container'>
 
-	<div id="result-bar" class="<?php echo retest_red_or_green_bar(); ?>">
-		<?php if (retest_no_tests()) { ?>
+	<div id="result-bar" class="<?php echo ftt_red_or_green_bar(); ?>">
+		<?php if (ftt_no_tests()) { ?>
 			Write a test!
-		<?php } elseif (retest_status_red()) { ?>
+		<?php } elseif (ftt_status_red()) { ?>
 			<strong>It failed!</strong>
 		<?php } else { ?>
 			<strong>It worked!</strong>
@@ -464,14 +464,14 @@
 
 	<div id="info">
 		<ul class="info">
-		<?php if (retest_status_red()) { ?>
-			<li><strong><?php echo retest_counter('failures') ?></strong> <a href="javascript:toggle('failures');"><?php echo retest_pluralize('Failure', retest_counter('failures')) ?></a>
+		<?php if (ftt_status_red()) { ?>
+			<li><strong><?php echo ftt_counter('failures') ?></strong> <a href="javascript:toggle('failures');"><?php echo ftt_pluralize('Failure', ftt_counter('failures')) ?></a>
 					<div id="failures" style="display: block">
 					<?php
 						echo "<ul>";
-						if (retest_counter('failures') > 0)
+						if (ftt_counter('failures') > 0)
 						{
-							foreach (retest_failures() as $function=>$details)
+							foreach (ftt_failures() as $function=>$details)
 							{
 								foreach ($details as $detail)
 								{
@@ -484,14 +484,14 @@
 					</div>
 			</li>
 			<?php } ?>
-			<li><strong><?php echo retest_counter('tests') ?></strong> <a href="javascript:toggle('tests');"><?php echo retest_pluralize('Test', retest_counter('tests')) ?></a>
+			<li><strong><?php echo ftt_counter('tests') ?></strong> <a href="javascript:toggle('tests');"><?php echo ftt_pluralize('Test', ftt_counter('tests')) ?></a>
 				<div id="tests" style="display: none;">
 					<?php
 						echo "<ul>";
-						$all_assertions = retest_assertions();
-						foreach (retest_test_functions() as $test)
+						$all_assertions = ftt_assertions();
+						foreach (ftt_test_functions() as $test)
 						{
-							$function = retest_test_filter($test);
+							$function = ftt_test_filter($test);
 							$test_assertions = isset($all_assertions[$function]) ? $all_assertions[$function] : array();
 							echo "<li>$function";
 							echo '<div style="font-size: 0.6em; font-family: monospace;">';
@@ -517,11 +517,11 @@
 					?>
 				</div>
 			</li>
-			<li><strong><?php echo retest_counter('test_files') ?></strong> <a href="javascript:toggle('test-files');">Test <?php echo retest_pluralize('File', retest_counter('test_files')) ?></a>
+			<li><strong><?php echo ftt_counter('test_files') ?></strong> <a href="javascript:toggle('test-files');">Test <?php echo ftt_pluralize('File', ftt_counter('test_files')) ?></a>
 				<div id="test-files" style="display: none">
 					<?php
 						echo "<ul>";
-						foreach (retest_test_files() as $test_file)
+						foreach (ftt_test_files() as $test_file)
 						{
 							echo "<li>$test_file</li>";
 						}
@@ -529,11 +529,11 @@
 					?>
 				</div>
 			</li>
-			<li><strong><?php echo retest_counter('source_files') ?></strong> <a href="javascript:toggle('source-files');">Source <?php echo retest_pluralize('File', retest_counter('source_files')) ?></a>
+			<li><strong><?php echo ftt_counter('source_files') ?></strong> <a href="javascript:toggle('source-files');">Source <?php echo ftt_pluralize('File', ftt_counter('source_files')) ?></a>
 				<div id="source-files" style="display: none">
 					<?php
 						echo "<ul>";
-						foreach (retest_source_files() as $source_file)
+						foreach (ftt_source_files() as $source_file)
 						{
 							echo "<li>$source_file</li>";
 						}
@@ -546,11 +546,11 @@
 	</div>
 <!--
 	<div id="code-coverage">
-		<strong><?php echo retest_count_of_untested_lines(retest_source_coverage()) ?></strong> <a href="javascript:toggle('untested-code');">Source lines not covered by tests (requires xdebug)</a>
+		<strong><?php echo ftt_count_of_untested_lines(ftt_source_coverage()) ?></strong> <a href="javascript:toggle('untested-code');">Source lines not covered by tests (requires xdebug)</a>
 		<div id="untested-code" style="display: none">
 			<?php
 				echo "<ul>";
-				foreach (retest_source_coverage() as $file=>$lines_not_covered)
+				foreach (ftt_source_coverage() as $file=>$lines_not_covered)
 				{
 					$id = md5($file);
 					echo "<li class=\"cc\"><a href=\"javascript:toggle('{$id}-code-coverage');\">{$file}</a>";
