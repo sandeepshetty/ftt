@@ -1,6 +1,6 @@
 # retest.php
 
-Drop-in function testing and auto-documentation library.
+Single-file drop-in function testing and auto-documentation tool.
 
 
 ## Requirements
