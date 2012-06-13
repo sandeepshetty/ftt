@@ -19,6 +19,34 @@ $ mv sandeepshetty-ftt.php-* ftt.php
 
 ### Usage
 
+
+``` php
+hello.php
+<?php
+
+
+	function hello($name)
+	{
+		return "Hello $name";
+	}
+
+?>
+```
+
+``` php
+hello.test.php
+<?php
+
+
+	function test_hello()
+	{
+		should_return('Hello Kent Beck', when_passed('Kent Beck'));
+	}
+
+?>
+```
+
+
 To auto-refresh every few seconds, add the query paramter `refresh_in`. For example, to auto refresh every 5 seconds:
 
 ```
