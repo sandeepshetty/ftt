@@ -1,35 +1,41 @@
 <?php
 
-	// display asserts using user_defined_function so that you can show functions that don't have tests.
-	// Show count of executable lines
-	// test output for following case: no test files, no tests function, no source
-	// write an error handler to capture count of error so that the count of failures is reflective of what actually is
-
 	retest_include_files();
 	retest_call_test_functions();
 
 
-	function should_return($expected_return_value, $when_passed=NULL, $msg=NULL)
+	function should_return($expected_return_value, $params=NULL, $msg=NULL)
 	{
 		$debug_backtrace = debug_backtrace();
 		$function = function_being_tested($debug_backtrace[1]['function']);
-		if (function_exists($function))	$returned_value = call_user_func_array($function, $when_passed);
-		else return trigger_error("Function $function does not exist");
 
-		$satisfied = ($returned_value === $expected_return_value);
-		retest_increment('assertions');
-		$msg = retest_assert_description($satisfied, $function, $expected_return_value, $returned_value, $when_passed, $msg);
-		$location = extract_assertion_location_from_($debug_backtrace);
-		retest_assertions(array('function'=>$function, 'location'=>$location, 'message'=>$msg));
+		if (!$function) return trigger_error("should_return() can only be called inside a test function");
+		if (!function_exists($function)) return trigger_error("Function $function does not exist");
 
-		if (!$satisfied)
+		$returned_value = call_user_func_array($function, $params);
+		retest_incr('assertions');
+
+		$is_expectation_met = ($returned_value === $expected_return_value);
+		retest_assertions(retest_assertion($function, $expected_return_value, $returned_value, $params, $msg, $debug_backtrace));
+
+		if (!$is_expectation_met)
 		{
-			retest_increment('failures');
-			retest_failures(array('function'=>$function, 'location'=>$location, 'message'=>$msg));
+			retest_incr('failures');
+			retest_failures(retest_assertion($function, $expected_return_value, $returned_value, $params, $msg, $debug_backtrace));
 		}
 
-		return $satisfied;
+		return $is_expectation_met;
 	}
+
+		function retest_assertion($function, $expected_return_value, $returned_value, $params, $msg, $debug_backtrace)
+		{
+			return array
+			(
+				'function' => $function,
+				'location' => assertion_location($debug_backtrace),
+				'message' => retest_assert_description($function, $expected_return_value, $returned_value, $params, $msg)
+			);
+		}
 
 
 	function when_passed()
@@ -37,14 +43,17 @@
 		return func_get_args();
 	}
 
+
+
 		function function_being_tested($test_function)
 		{
 			return preg_replace('/^test_/', '', $test_function);
 		}
 
-		function retest_assert_description($satisfied, $function, $expected_return_value, $returned_value, $passed_arguments, $msg)
+		function retest_assert_description($function, $expected_return_value, $returned_value, $passed_arguments, $msg)
 		{
-			if ($satisfied)
+			$is_expectation_met = ($returned_value === $expected_return_value);
+			if ($is_expectation_met)
 			{
 				$function_call = "<strong>$function</strong>".'('.retest_array_to_argument_list($passed_arguments).')';
 				//TODO: reason for %1\$s instead of %s: the $f in $function_call kicks in argument swaping in sprintf :(
@@ -100,7 +109,7 @@
 			return $assertions;
 		}
 
-		function extract_assertion_location_from_($debug_backtrace)
+		function assertion_location($debug_backtrace)
 		{
 			return array('file'=>$debug_backtrace[0]['file'], 'line'=>$debug_backtrace[0]['line']);
 		}
@@ -114,12 +123,12 @@
 				if ($source_file = retest_source_file($test_file))
 				{
 					include_once $source_file;
-					retest_increment('source_files');
+					retest_incr('source_files');
 					retest_source_files($source_file);
 				}
 
 				include_once $test_file;
-				retest_increment('test_files');
+				retest_incr('test_files');
 			}
 		}
 
@@ -140,7 +149,7 @@
 
 			function retest_source_file($test_file)
 			{
-				$source_file = retest_remove_test_extension($test_file);
+				$source_file = file_being_tested($test_file);
 
 				if (file_exists($source_file))
 				{
@@ -156,12 +165,12 @@
 
 				return false;
 			}
-				function retest_remove_test_extension($test_file)
+				function file_being_tested($test_file)
 				{
 					return preg_replace('/\.test\.php$/', '.php', $test_file);
 				}
 
-			function retest_increment($counter_name)
+			function retest_incr($counter_name)
 			{
 				return retest_counter($counter_name, true);
 			}
@@ -188,7 +197,7 @@
 
 			foreach (retest_test_functions() as $test_function)
 			{
-				retest_increment('tests');
+				retest_incr('tests');
 				$test_function();
 			}
 
@@ -535,7 +544,7 @@
 
 		</ul>
 	</div>
-
+<!--
 	<div id="code-coverage">
 		<strong><?php echo retest_count_of_untested_lines(retest_source_coverage()) ?></strong> <a href="javascript:toggle('untested-code');">Source lines not covered by tests (requires xdebug)</a>
 		<div id="untested-code" style="display: none">
@@ -557,7 +566,7 @@
 			?>
 		</div>
 	</div>
-
+-->
 </div>
 
 </body>
