@@ -1,6 +1,6 @@
 # ftt.php
 
-Single-file drop-in function testing and auto-documentation tool.
+Single-file drop-in Function Testing Tool (ftt) and auto-documenter
 
 
 ## Requirements
