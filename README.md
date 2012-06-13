@@ -21,30 +21,31 @@ $ mv sandeepshetty-ftt.php-* ftt.php
 
 
 ``` php
-hello.php
+answer.php
 <?php
 
-	function hello($name)
+	function answer($whatever)
 	{
-		return "Hello $name";
+		return 42;
 	}
 
 ?>
 ```
 
 ``` php
-hello.test.php
+answer.test.php
 <?php
 
-	function test_hello()
+	function test_answer()
 	{
-		should_return('Hello Kent Beck', when_passed('Kent Beck'));
+		should_return(42, when_passed('The Ultimate Question of Life, the Universe, and Everything'));
 	}
 
 ?>
 ```
 
-Run tests:
+Run the test:
+
 ```
 http://localhost/path/to/hello.php/ftt.php
 ```
