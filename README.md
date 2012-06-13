@@ -24,7 +24,7 @@ $ mv sandeepshetty-ftt.php-* ftt.php
 answer.php
 <?php
 
-	function answer($whatever)
+	function answer()
 	{
 		return 42;
 	}
