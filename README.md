@@ -18,3 +18,5 @@ $ mv sandeepshetty-retest.php-* retest.php
 ```
 
 ### Usage
+
+To auto-refresh every `n` seconds, add the query paramter `refresh_in`:  `http://example.com/dir/to/test/retest.php?refresh_in=5`
