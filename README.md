@@ -39,6 +39,7 @@ answer.test.php
 	function test_answer()
 	{
 		should_return(42, when_passed('The Ultimate Question of Life, the Universe, and Everything'));
+		should_return(42, when_passed('foobar'));
 	}
 
 ?>
