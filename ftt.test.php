@@ -12,4 +12,10 @@
 		should_return('foobar.php', when_passed('foobar.test.php'));
 	}
 
+
+	function test_when_passed()
+	{
+		should_return(array('foo', 'bar'), when_passed('foo', 'bar'));
+	}
+
 ?>
