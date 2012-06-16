@@ -9,8 +9,8 @@ Single-file drop-in Function Testing Tool (FTT) and auto-documenter.
 Download the [latest version of ftt.php](https://github.com/sandeepshetty/ftt.php/archives/master):
 
 ```shell
-$ curl -L http://github.com/sandeepshetty/ftt.php/tarball/master | tar xvz
-$ mv sandeepshetty-ftt.php-* ftt.php
+$ curl -L http://github.com/sandeepshetty/ftt/tarball/master | tar xvz
+$ mv sandeepshetty-ftt-* ftt
 ```
 
 
