@@ -1,6 +1,6 @@
-# ftt.php
+# FTT
 
-Single-file drop-in Function Testing Tool (ftt) and auto-documenter.
+Single-file drop-in Function Testing Tool (FTT) and auto-documenter.
 
 
 ## Getting Started
@@ -16,7 +16,7 @@ $ mv sandeepshetty-ftt.php-* ftt.php
 
 ### Usage
 
-* ftt is a function testing tool, that is, it is used to test regular functions purely based on their input and output.
+* FTT is a function testing tool, that is, it is used to test regular functions purely based on their input and output.
 * Just drop `ftt.php` into the top level source directory for which you want to write tests.
 * Tests are written in files that have the same name as the source file except for the .test.php extension. For example, to test the functions inside `example.php`, create the file `example.test.php`. Test files can either reside in the same directory as the source file, or inside a sub-directory `tests` relative to the source file.
 * Tests are just regular functions that have the name of the function they are testing prefixed with `test_`. For example, `test_foobar()` tests `foobar()`.
